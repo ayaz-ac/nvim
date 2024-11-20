@@ -1,3 +1,10 @@
+local opts = require("vim-options")
+opts.init()
+
+-- Leader key conf (should go before initializing lazy)
+vim.g.mapleader = " " -- Make sure to set `mapleader` before lazy so your mappings are correct
+
+-- Lazy initialization
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not (vim.uv or vim.loop).fs_stat(lazypath) then
   local lazyrepo = "https://github.com/folke/lazy.nvim.git"
@@ -12,9 +19,10 @@ if not (vim.uv or vim.loop).fs_stat(lazypath) then
     os.exit(1)
   end
 end
+
 vim.opt.rtp:prepend(lazypath)
 
-local opts = {}
-
-require("vim-options")
 require("lazy").setup("plugins")
+
+local keys = require("vim-keymaps")
+keys.init()
