@@ -11,7 +11,6 @@ return {
 		dashboard.section.buttons.val = {
 			dashboard.button("f", "  Find file", ":Telescope find_files <CR>"),
 			dashboard.button("e", "  New file", ":ene <BAR> startinsert <CR>"),
-			dashboard.button("s", "Load previous session", ":SessionManager load_session<CR>"),
 			dashboard.button("c", "  Configuration", ":cd ~/.config/nvim | :Telescope find_files<CR>"),
 			dashboard.button("q", "  Quit Neovim", ":qa<CR>"),
 		}
