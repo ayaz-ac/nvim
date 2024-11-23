@@ -12,7 +12,6 @@ return {
 					find_files = {
 						theme = theme,
 						previewer = false,
-						find_command = { "rg", "--files", "--hidden", "--glob", "!.git/*" },
 					},
 					buffers = {
 						theme = theme,
