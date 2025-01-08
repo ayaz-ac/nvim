@@ -19,6 +19,12 @@ function keys.init()
   -- Split vertically/horizontally
   vim.keymap.set('n', '<C-s>', ':vsplit<CR>')
   vim.keymap.set('n', '<C-b>', ':split<CR>')
+
+  -- Use Tab and Shift + Tab to indent/unindent
+  vim.keymap.set("v", "<Tab>", ">gv", { desc = "Indent selected lines", silent = true })
+  vim.keymap.set("v", "<S-Tab>", "<gv", { desc = "Unindent selected lines", silent = true })
+  vim.keymap.set("i", "<Tab>", "<C-t>", { desc = "Indent line in insert mode", silent = true })
+  vim.keymap.set("i", "<S-Tab>", "<C-d>", { desc = "Unindent line in insert mode", silent = true })
 end
 
 return keys
