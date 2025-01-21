@@ -9,7 +9,7 @@ return {
 			vim.keymap.set("n", "<Tab>", "<Cmd>BufferNext<CR>", { desc = "Next buffer" })
 			vim.keymap.set("n", "<S-Tab>", "<Cmd>BufferPrevious<CR>", { desc = "Previous buffer" })
 			vim.keymap.set("n", "<leader>bd", "<Cmd>BufferClose<CR>", { desc = "Close current buffer" })
-			vim.keymap.set("n", "<leader>bo", "<Cmd>BufferCloseAllButCurrent<CR>", { desc = "Close all buffers" })
+			vim.keymap.set("n", "<leader>bo", "<Cmd>BufferCloseAllButCurrent<CR>", { desc = "Close all other buffers" })
 
 			vim.g.bufferline = {
 				animation = true, -- Enable/disable animations
