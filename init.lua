@@ -20,6 +20,14 @@ if not (vim.uv or vim.loop).fs_stat(lazypath) then
   end
 end
 
+-- Remove 'r' and 'o' from formatoptions
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = "*",
+  callback = function()
+    vim.opt.formatoptions:remove({ "r", "o" })
+  end,
+})
+
 vim.opt.rtp:prepend(lazypath)
 
 require("lazy").setup("plugins")
