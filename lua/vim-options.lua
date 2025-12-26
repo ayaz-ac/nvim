@@ -20,6 +20,7 @@ function opts.init()
   vim.opt.linebreak = true -- Break line when it's too long
 	vim.opt.signcolumn = "yes" -- Show a column where the plugins can show sign/status
 	vim.opt.cursorline = true -- Highlight current line
+  vim.opt.fixeol = true -- Add EOL if not present when writing a file
 
   -- Indentation
 	vim.opt.expandtab = true -- Use spaces instead of tabs
