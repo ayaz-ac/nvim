@@ -29,6 +29,10 @@ function keys.init()
 
   -- Buffer management
   vim.keymap.set("n", "bdo", ":%bd|e#|bd#<CR>", { noremap = true, silent = true })
+  vim.keymap.set("n", "bd", ":bd<CR>", { noremap = true, silent = true })
+
+  -- Save current buffer with CMD+S
+  vim.keymap.set("n", "<D-s>", ":w<CR>", { noremap = true, silent = true })
 end
 
 return keys
