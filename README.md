@@ -5,7 +5,7 @@
 ![Neovim](https://img.shields.io/badge/Neovim-0.9+-green.svg)
 ![Platform](https://img.shields.io/badge/platform-macOS-lightgrey.svg)
 
-*Screenshot placeholder: Main editing view*
+![Main editing view](assets/screenshot.png)
 
 ## Features
 
@@ -274,23 +274,6 @@ vim.keymap.set('n', '<leader>x', ':YourCommand<CR>', { desc = 'Description' })
 1. Add your preferred theme plugin in `lua/plugins/`
 2. Update `lua/plugins/lualine.lua` to use the new theme
 3. Remove or comment out `lua/plugins/tokyonight.lua`
-
-## Screenshots
-
-### Main Editing View
-*Screenshot placeholder: Ruby file with LSP hover documentation, gitsigns indicators, and lualine statusline showing git branch and file info*
-
-### Telescope Fuzzy Finder
-*Screenshot placeholder: Telescope dropdown showing file search results with live grep preview*
-
-### Neo-tree File Explorer
-*Screenshot placeholder: Right-aligned file explorer with git status indicators (added/modified/deleted files)*
-
-### LazyGit Integration
-*Screenshot placeholder: LazyGit UI in floating window showing commit history and diff*
-
-### LSP in Action
-*Screenshot placeholder: Code actions popup, go-to-definition, or inline diagnostics from Rubocop*
 
 ## Workflow Highlights
 
