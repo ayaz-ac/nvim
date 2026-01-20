@@ -24,6 +24,9 @@ return {
             return utils.root_has_file({ ".rubocop.yml" })
           end,
         }),
+        null_ls.builtins.formatting.biome.with({
+          filetypes = { "javascript", "javascriptreact", "typescript", "typescriptreact", "json", "jsonc" },
+        }),
       },
       on_attach = function(client, bufnr)
         if client.supports_method("textDocument/formatting") then

@@ -10,6 +10,7 @@ return {
     "williamboman/mason-lspconfig.nvim",
     lazy = false,
     opts = {
+      ensure_installed = { "ts_ls", "lua_ls", "ruby_lsp", "biome" },
       auto_install = true
     }
   },
@@ -21,6 +22,7 @@ return {
       lspconfig.ruby_lsp.setup({
         root_dir = require("lspconfig.util").root_pattern("Gemfile", ".git")
       })
+      lspconfig.ts_ls.setup({})
 
       vim.keymap.set("n", "K", vim.lsp.buf.hover, {})
       vim.keymap.set("n", "<leader>gd", vim.lsp.buf.definition, { desc= 'Go to definition' })
