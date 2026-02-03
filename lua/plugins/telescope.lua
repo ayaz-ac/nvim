@@ -11,10 +11,20 @@ return {
       local telescope = require("telescope")
 
 			telescope.setup({
+				defaults = {
+					file_ignore_patterns = {
+						"^%.git/",         -- .git directory
+						"%.env$",          -- .env files
+						"%.env%..*",       -- .env.local, .env.production, etc.
+						"%.key$",          -- private key files
+						"master%.key$",    -- Rails master key
+					},
+				},
 				pickers = {
 					find_files = {
 						theme = theme,
 						previewer = false,
+						hidden = true, -- Show hidden/dotted files
 					},
 					buffers = {
 						theme = theme,
