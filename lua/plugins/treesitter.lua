@@ -1,12 +1,22 @@
 return {
 	"nvim-treesitter/nvim-treesitter",
+	branch = "main",
+	lazy = false,
 	build = ":TSUpdate",
 	config = function()
-		local config = require("nvim-treesitter.configs")
-		config.setup({
-			ensure_installed = { "ruby", "embedded_template", "javascript" },
-			auto_install = true,
-			highlight = { enable = true },
+		local ensure = { "ruby", "embedded_template", "javascript", "lua", "markdown", "markdown_inline" }
+		local installed = require("nvim-treesitter.config").get_installed()
+		local to_install = vim.iter(ensure):filter(function(p)
+			return not vim.tbl_contains(installed, p)
+		end):totable()
+		if #to_install > 0 then
+			require("nvim-treesitter").install(to_install)
+		end
+
+		vim.api.nvim_create_autocmd("FileType", {
+			callback = function()
+				pcall(vim.treesitter.start)
+			end,
 		})
 	end,
 }
