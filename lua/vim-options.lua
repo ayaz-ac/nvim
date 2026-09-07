@@ -8,6 +8,10 @@ function opts.init()
 	vim.opt.confirm = true -- Confirm before closing an unsaved buffer
 	vim.opt.swapfile = false
 
+  -- Window title (Ghostty/tmux tab name): show the cwd folder, not "nvim"
+	vim.opt.title = true
+	vim.opt.titlestring = "%{fnamemodify(getcwd(), ':t')}"
+
   -- File management
 	vim.opt.autoread = true -- Automatically read and update a file when it has been changed outside
 	vim.opt.autowrite = true -- Automatically write file when it was changed
