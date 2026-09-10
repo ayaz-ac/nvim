@@ -4,7 +4,7 @@ return {
 	lazy = false,
 	build = ":TSUpdate",
 	config = function()
-		local ensure = { "ruby", "embedded_template", "javascript", "lua", "markdown", "markdown_inline" }
+		local ensure = { "ruby", "embedded_template", "javascript", "jsdoc", "typescript", "tsx", "lua", "markdown", "markdown_inline" }
 		local installed = require("nvim-treesitter.config").get_installed()
 		local to_install = vim.iter(ensure):filter(function(p)
 			return not vim.tbl_contains(installed, p)
