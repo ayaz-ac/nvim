@@ -1,15 +1,162 @@
--- Colorschemes generated from the Ghostty theme files of the same name, so
--- Neovim and the terminal show identical colors. Palettes come from
--- /Applications/Ghostty.app/Contents/Resources/ghostty/themes/{Breadog,Breeze}.
+-- Colorscheme built at startup from the Ghostty theme, so Neovim and the
+-- terminal show identical colors and no palette is defined here. It reads the
+-- `theme` line of the Ghostty config, loads that theme file, and derives the
+-- highlight roles from its 16 colors.
 local M = {}
 
--- Builds every highlight group from a palette. `p.ansi` holds the 16 terminal
--- colors copied verbatim from Ghostty. The named roles (red, blue, ...) pick
--- which of those two shades reads best on this background: Breeze inverts the
--- usual convention and keeps its brighter colors in the normal 1-6 slots. The
--- remaining shades (cursorline, floats, borders) are tinted from the
--- background, because Ghostty has no equivalent for them.
-function M.load(name, p)
+local home = vim.env.HOME
+local config_home = vim.env.XDG_CONFIG_HOME or (home .. "/.config")
+local resources = vim.env.GHOSTTY_RESOURCES_DIR or "/Applications/Ghostty.app/Contents/Resources/ghostty"
+
+-- Ghostty loads these in order; a later file overrides an earlier one.
+local config_files = {
+  config_home .. "/ghostty/config",
+  config_home .. "/ghostty/config.ghostty",
+  home .. "/Library/Application Support/com.mitchellh.ghostty/config",
+  home .. "/Library/Application Support/com.mitchellh.ghostty/config.ghostty",
+}
+
+local function read_pairs(path, on_pair)
+  local f = io.open(path, "r")
+  if not f then
+    return false
+  end
+  for line in f:lines() do
+    local key, value = line:match("^%s*([%w%-]+)%s*=%s*(.-)%s*$")
+    if key then
+      on_pair(key, (value:gsub('^"(.*)"$', "%1")))
+    end
+  end
+  f:close()
+  return true
+end
+
+-- Returns { light = name, dark = name } from `light:A,dark:B` or a single name.
+local function theme_names()
+  local value
+  for _, path in ipairs(config_files) do
+    read_pairs(path, function(key, v)
+      if key == "theme" then
+        value = v
+      end
+    end)
+  end
+  if not value then
+    return nil
+  end
+  local light, dark = value:match("light:([^,]+)"), value:match("dark:([^,]+)")
+  if light or dark then
+    return { light = vim.trim(light or dark), dark = vim.trim(dark or light) }
+  end
+  return { light = value, dark = value }
+end
+
+local function read_theme(name)
+  local candidates = { name, config_home .. "/ghostty/themes/" .. name, resources .. "/themes/" .. name }
+  local t = { palette = {} }
+  for _, path in ipairs(candidates) do
+    if name:sub(1, 1) == "/" or path ~= name then
+      local found = read_pairs(path, function(key, v)
+        if key == "palette" then
+          local i, hex = v:match("^(%d+)%s*=%s*(#?%x+)$")
+          if i then
+            t.palette[tonumber(i)] = hex
+          end
+        else
+          t[key] = v
+        end
+      end)
+      if found and t.background and t.foreground and #t.palette >= 15 then
+        return t
+      end
+    end
+  end
+  return nil
+end
+
+local function rgb(hex)
+  hex = hex:gsub("#", "")
+  return tonumber(hex:sub(1, 2), 16), tonumber(hex:sub(3, 4), 16), tonumber(hex:sub(5, 6), 16)
+end
+
+local function mix(a, b, t)
+  local r1, g1, b1 = rgb(a)
+  local r2, g2, b2 = rgb(b)
+  local function ch(x, y)
+    return math.floor(x + (y - x) * t + 0.5)
+  end
+  return string.format("#%02x%02x%02x", ch(r1, r2), ch(g1, g2), ch(b1, b2))
+end
+
+local function luminance(hex)
+  local function lin(c)
+    c = c / 255
+    return c <= 0.03928 and c / 12.92 or ((c + 0.055) / 1.055) ^ 2.4
+  end
+  local r, g, b = rgb(hex)
+  return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b)
+end
+
+local function contrast(a, b)
+  local la, lb = luminance(a), luminance(b)
+  return (math.max(la, lb) + 0.05) / (math.min(la, lb) + 0.05)
+end
+
+-- Moves a color toward the foreground until it reaches `min` contrast on bg.
+local function readable(color, bg, fg, min)
+  local c = color
+  for step = 1, 10 do
+    if contrast(c, bg) >= min then
+      break
+    end
+    c = mix(color, fg, step / 10)
+  end
+  return c
+end
+
+-- Each color has a normal (1-6) and a bright (9-14) slot. Which one reads
+-- best depends on the theme, so the higher-contrast slot takes the main role.
+local function palette(t)
+  local bg, fg = "#" .. t.background:gsub("#", ""), "#" .. t.foreground:gsub("#", "")
+  local ansi = {}
+  for i = 0, 15 do
+    ansi[i] = t.palette[i] and ("#" .. t.palette[i]:gsub("#", "")) or fg
+  end
+
+  local p = {
+    ansi = ansi,
+    background = luminance(bg) < 0.18 and "dark" or "light",
+    bg = bg,
+    fg = fg,
+  }
+  for i, role in ipairs({ "red", "green", "yellow", "blue", "magenta", "cyan" }) do
+    local main, alt = ansi[i], ansi[i + 8]
+    if contrast(alt, bg) > contrast(main, bg) then
+      main, alt = alt, main
+    end
+    p[role] = readable(main, bg, fg, 4.5)
+    p[role .. "_alt"] = readable(alt, bg, fg, 3.5)
+  end
+
+  p.bg_alt = mix(bg, fg, 0.07)
+  p.bg_float = mix(bg, fg, 0.04)
+  local sel = t["selection-background"] and ("#" .. t["selection-background"]:gsub("#", ""))
+  -- Some themes invert fg/bg for selections; Visual keeps the text color, so
+  -- fall back to a tint when the theme selection would hide the text.
+  p.selection = (sel and contrast(sel, fg) >= 3) and sel or mix(bg, fg, 0.2)
+  p.border = mix(bg, fg, 0.25)
+  p.comment = readable(ansi[8], bg, fg, 3.5)
+  p.muted = mix(bg, fg, 0.35)
+  p.diff_add = mix(bg, p.green, 0.18)
+  p.diff_change = mix(bg, p.yellow, 0.15)
+  p.diff_delete = mix(bg, p.red, 0.18)
+  p.diff_text = mix(bg, p.yellow, 0.3)
+  return p
+end
+
+-- Builds every highlight group from a palette. The shades Ghostty has no
+-- equivalent for (cursorline, floats, borders) are tinted from the background.
+local function apply_palette(name, p)
   vim.cmd.highlight("clear")
   if vim.fn.exists("syntax_on") == 1 then
     vim.cmd.syntax("reset")
@@ -210,17 +357,33 @@ function M.load(name, p)
   end
 end
 
--- Tracks the terminal light/dark mode and matches Ghostty's theme setting
--- (light:Breadog,dark:Breeze). Neovim subscribes to DEC mode 2031 and
--- re-queries OSC 11, so 'background' updates live when the macOS appearance
--- flips at day/night -- no polling needed.
+-- Loads the Ghostty theme for the current 'background'. Returns false when
+-- no Ghostty theme is found, so the caller can keep another colorscheme.
+function M.load()
+  local names = theme_names()
+  local name = names and names[vim.o.background]
+  local t = name and read_theme(name)
+  if not t then
+    return false
+  end
+  apply_palette("ghostty", palette(t))
+  vim.g.ghostty_theme = name
+  return true
+end
+
+-- Tracks the terminal light/dark mode and matches Ghostty's `light:A,dark:B`
+-- theme setting. Neovim subscribes to DEC mode 2031 and re-queries OSC 11, so
+-- 'background' updates live when the macOS appearance flips at day/night.
 function M.follow_terminal()
   local function apply()
-    local want = vim.o.background == "light" and "breadog" or "breeze"
-    -- Setting the colorscheme also sets 'background', which re-enters this
-    -- callback; bail out when we are already on the right one.
-    if vim.g.colors_name ~= want then
-      vim.cmd.colorscheme(want)
+    local names = theme_names()
+    -- Loading sets 'background', which re-enters this callback; bail out when
+    -- the right theme is already loaded.
+    if names and vim.g.colors_name == "ghostty" and vim.g.ghostty_theme == names[vim.o.background] then
+      return
+    end
+    if not M.load() then
+      vim.cmd.colorscheme("default")
     end
   end
 
