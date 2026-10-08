@@ -30,8 +30,6 @@ vim.api.nvim_create_autocmd("FileType", {
 
 vim.opt.rtp:prepend(lazypath)
 
-require("ghostty-theme").follow_terminal()
-
 require("lazy").setup("plugins")
 
 local keys = require("vim-keymaps")
